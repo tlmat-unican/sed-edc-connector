@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: management-api
   description: REST API documentation for the management-api
-  version: 3.1.2
+  version: 3.0.6
 servers:
 - url: /
 paths:
@@ -52,6 +52,286 @@ paths:
           description: default response
           content:
             application/json: {}
+  /v3.1alpha/catalog/dataset/request:
+    post:
+      tags:
+      - Catalog V3
+      operationId: getDatasetV31alpha
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DatasetRequest"
+      responses:
+        default:
+          description: Gets single dataset from a connector
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dataset"
+  /v3.1alpha/catalog/request:
+    post:
+      tags:
+      - Catalog V3
+      operationId: requestCatalogV31alpha
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CatalogRequest"
+      responses:
+        default:
+          description: Gets contract offers (=catalog) of a single connector
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Catalog"
+  /v3.1alpha/policydefinitions:
+    post:
+      tags:
+      - Policy Definition v3.1-alpha
+      description: Creates a new policy definition
+      operationId: createPolicyDefinitionV3_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PolicyDefinitionInput"
+      responses:
+        "200":
+          description: policy definition was created successfully. Returns the Policy
+            Definition Id and created timestamp
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IdResponse"
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "409":
+          description: "Could not create policy definition, because a contract definition\
+            \ with that ID already exists"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v3.1alpha/policydefinitions/request:
+    post:
+      tags:
+      - Policy Definition v3.1-alpha
+      description: Returns all policy definitions according to a query
+      operationId: queryPolicyDefinitionsV3_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuerySpec"
+      responses:
+        "200":
+          description: The policy definitions matching the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PolicyDefinitionOutput"
+        "400":
+          description: Request was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v3.1alpha/policydefinitions/{id}:
+    get:
+      tags:
+      - Policy Definition v3.1-alpha
+      description: Gets a policy definition with the given ID
+      operationId: getPolicyDefinitionV3_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The  policy definition
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PolicyDefinitionOutput"
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: An  policy definition with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+    put:
+      tags:
+      - Policy Definition v3.1-alpha
+      description: "Updates an existing Policy, If the Policy is not found, an error\
+        \ is reported"
+      operationId: updatePolicyDefinitionV3_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PolicyDefinitionInput"
+      responses:
+        "204":
+          description: policy definition was updated successfully.
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: "policy definition could not be updated, because it does not\
+            \ exists"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorDetail"
+    delete:
+      tags:
+      - Policy Definition v3.1-alpha
+      description: "Removes a policy definition with the given ID if possible. Deleting\
+        \ a policy definition is only possible if that policy definition is not yet\
+        \ referenced by a contract definition, in which case an error is returned.\
+        \ DANGER ZONE: Note that deleting policy definitions can have unexpected results,\
+        \ do this at your own risk!"
+      operationId: deletePolicyDefinitionV3_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Policy definition was deleted successfully
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: An policy definition with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "409":
+          description: "The policy definition cannot be deleted, because it is referenced\
+            \ by a contract definition"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v3.1alpha/policydefinitions/{id}/evaluationplan:
+    post:
+      tags:
+      - Policy Definition v3.1-alpha
+      description: "Creates an execution plane for an existing Policy, If the Policy\
+        \ is not found, an error is reported"
+      operationId: createExecutionPlaneV3
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PolicyEvaluationPlanRequestSchema"
+      responses:
+        "200":
+          description: Returns the evaluation plan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PolicyEvaluationPlanSchema"
+        "404":
+          description: "An evaluation plan could not be created, because the policy\
+            \ definition does not exists"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorDetail"
+  /v3.1alpha/policydefinitions/{id}/validate:
+    post:
+      tags:
+      - Policy Definition v3.1-alpha
+      description: "Validates an existing Policy, If the Policy is not found, an error\
+        \ is reported"
+      operationId: validatePolicyDefinitionV3
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Returns the validation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PolicyValidationResultSchema"
+        "404":
+          description: "policy definition could not be validated, because it does\
+            \ not exists"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorDetail"
   /v3/assets:
     put:
       tags:
@@ -626,51 +906,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
-    delete:
-      tags:
-      - Contract Negotiation V3
-      description: Deletes the contract negotiation with the given ID. Only terminated
-        negotiations without agreement will be deleted
-      operationId: deleteNegotiationV3
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "204":
-          description: ContractNegotiation is deleted
-          links:
-            poll-state:
-              operationId: getNegotiationStateV3
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "404":
-          description: A contract negotiation with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "409":
-          description: The given contract negotiation cannot be deleted due to a wrong
-            state or has existing contract agreement
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
   /v3/contractnegotiations/{id}/agreement:
     get:
       tags:
@@ -906,7 +1141,7 @@ paths:
   /v3/policydefinitions:
     post:
       tags:
-      - Policy Definition v3
+      - Policy Definition V3
       description: Creates a new policy definition
       operationId: createPolicyDefinitionV3
       requestBody:
@@ -942,7 +1177,7 @@ paths:
   /v3/policydefinitions/request:
     post:
       tags:
-      - Policy Definition v3
+      - Policy Definition V3
       description: Returns all policy definitions according to a query
       operationId: queryPolicyDefinitionsV3
       requestBody:
@@ -970,7 +1205,7 @@ paths:
   /v3/policydefinitions/{id}:
     get:
       tags:
-      - Policy Definition v3
+      - Policy Definition V3
       description: Gets a policy definition with the given ID
       operationId: getPolicyDefinitionV3
       parameters:
@@ -1006,7 +1241,7 @@ paths:
                   $ref: "#/components/schemas/ApiErrorDetail"
     put:
       tags:
-      - Policy Definition v3
+      - Policy Definition V3
       description: "Updates an existing Policy, If the Policy is not found, an error\
         \ is reported"
       operationId: updatePolicyDefinitionV3
@@ -1043,7 +1278,7 @@ paths:
                 $ref: "#/components/schemas/ApiErrorDetail"
     delete:
       tags:
-      - Policy Definition v3
+      - Policy Definition V3
       description: "Removes a policy definition with the given ID if possible. Deleting\
         \ a policy definition is only possible if that policy definition is not yet\
         \ referenced by a contract definition, in which case an error is returned.\
@@ -1086,69 +1321,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
-  /v3/policydefinitions/{id}/evaluationplan:
-    post:
-      tags:
-      - Policy Definition v3
-      description: "Creates an execution plane for an existing Policy, If the Policy\
-        \ is not found, an error is reported"
-      operationId: createExecutionPlaneV3
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/PolicyEvaluationPlanRequestSchema"
-      responses:
-        "200":
-          description: Returns the evaluation plan
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PolicyEvaluationPlanSchema"
-        "404":
-          description: "An evaluation plan could not be created, because the policy\
-            \ definition does not exists"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiErrorDetail"
-  /v3/policydefinitions/{id}/validate:
-    post:
-      tags:
-      - Policy Definition v3
-      description: "Validates an existing Policy, If the Policy is not found, an error\
-        \ is reported"
-      operationId: validatePolicyDefinitionV3
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: Returns the validation result
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PolicyValidationResultSchema"
-        "404":
-          description: "policy definition could not be validated, because it does\
-            \ not exists"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiErrorDetail"
   /v3/secrets:
     put:
       tags:
@@ -1873,7 +2045,7 @@ components:
           '@id': 5e839777-d93e-4785-8972-1005f51cf367
           '@type': dcat:DataService
           dct:terms: connector
-          dcat:endpointURL: http://localhost:16806/protocol
+          dct:endpointUrl: http://localhost:16806/protocol
         dspace:participantId: urn:connector:provider
         '@context':
           '@vocab': https://w3id.org/edc/v0.0.1/ns/

@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: control-api
   description: REST API documentation for the control-api
-  version: 2.0.0
+  version: 1.0.2
 servers:
 - url: /
 tags:
@@ -57,34 +57,6 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/TransferProcessFailStateDto"
-      responses:
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-  /transferprocess/{processId}/provisioned:
-    post:
-      tags:
-      - Transfer Process Control Api
-      description: Notify provisioning completion.
-      operationId: provisioned
-      parameters:
-      - name: processId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DataAddress"
       responses:
         "400":
           description: "Request was malformed, e.g. id was null"
@@ -249,6 +221,35 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
+  /v1/dataplanes/select:
+    post:
+      tags:
+      - Dataplane Selector
+      description: Finds the best fitting data plane instance for a particular query
+      operationId: selectDataplane
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SelectionRequestSchema"
+      responses:
+        "200":
+          description: The DataPlane instance that fits best for the given selection
+            request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataPlaneInstanceSchema"
+        "204":
+          description: No suitable DataPlane instance was found
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v1/dataplanes/{id}:
     get:
       tags:
@@ -375,10 +376,11 @@ components:
     DataAddress:
       type: object
       properties:
-        properties:
-          type: object
-          additionalProperties:
-            type: object
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/DataAddress
+        type:
+          type: string
     DataFlowResponseMessage:
       type: object
       properties:
@@ -596,6 +598,34 @@ components:
           - "NULL"
     Properties:
       type: object
+    SelectionRequestSchema:
+      required:
+      - source
+      - transferType
+      type: object
+      properties:
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/SelectionRequest
+        destination:
+          $ref: "#/components/schemas/DataAddress"
+        source:
+          $ref: "#/components/schemas/DataAddress"
+        strategy:
+          type: string
+        transferType:
+          type: string
+      example:
+        '@context':
+          '@vocab': https://w3id.org/edc/v0.0.1/ns/
+        source:
+          '@type': https://w3id.org/edc/v0.0.1/ns/DataAddress
+          type: test-src1
+        destination:
+          '@type': https://w3id.org/edc/v0.0.1/ns/DataAddress
+          type: test-dst2
+        strategy: you_custom_strategy
+        transferType: you_custom_transfer_type
     TransferProcessFailStateDto:
       type: object
       properties:
